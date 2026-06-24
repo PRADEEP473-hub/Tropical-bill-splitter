@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #0077BE;
+  --color-brand-primary-container: #005E97;
+  --color-brand-secondary: #40E0D0;
+  --color-brand-accent: #FF7F50;
+  --color-brand-background: #F5F5DC;
+  --color-brand-surface: #F7F9FF;
+  --color-brand-navy: #003366;
+  --color-brand-outline: #707882;
+  --color-brand-error: #BA1A1A;
+  
+  --font-heading: var(--font-plus-jakarta-sans);
+  --font-body: var(--font-work-sans);
+  --font-mono: var(--font-space-grotesk);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+:root {
+  --background: #F5F5DC;
+  --foreground: #003366;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+/* Custom UI Utilities */
+.glass-panel {
+  background: rgba(247, 249, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 51, 102, 0.1);
+}
+
+.ticket-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.ticket-button::before,
+.ticket-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background-color: var(--background);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.ticket-button::before {
+  left: -6px;
+}
+
+.ticket-button::after {
+  right: -6px;
+}
+
+.wave-divider {
+  width: 100%;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z' fill='%230077BE' opacity='0.2'%3E%3C/path%3E%3C/svg%3E");
+  background-size: cover;
+  background-repeat: no-repeat;
+}

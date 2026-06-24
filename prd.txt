@@ -1,0 +1,235 @@
+ PRODUCT REQUIREMENTS 
+DOCUMENT  —
+  Bill Splitter App  
+This PRD defines the Bill Splitter demo app that the facilitator builds live during the workshop. It serves as the reference spec for the working app, the GitHub repo, and the Vercel deployment that students see at the start of the session.
+1.  Executive Summary
+Bill Splitter is a full-stack web application that allows users to track personal expenses and manage shared group expenses with friends, flat mates, or travel companions. The app solves the common and painful problem of figuring out who paid what in a group — a process that currently happens over WhatsApp messages, screenshots, and memory, leading to confusion and conflict.
+Built with React, Next.js 14, TypeScript, Supabase, and Tailwind CSS, the app demonstrates a production-quality architecture in a scope small enough to build in a 2-hour workshop. Every feature is real and functional — not mocked or simulated.
+2.  User Personas
+  Arjun, 21 — Engineering student, Pune  
+Arjun lives in a shared flat with three friends. Every month someone pays the electricity bill, someone pays for groceries, someone buys the Wi-Fi recharge. By the end of the month nobody remembers who owes who what. He needs a simple way to log expenses and see the running total. He has basic coding knowledge from his CS course but has never built a deployed web app.
+Goal:  
+Log shared flat expenses, see total owed, not fight about money at the end of the month.
+  Meera, 24 — Working professional, Bangalore  
+Meera's friend group does a trip every 3–4 months. During the trip, one person books flights, another handles hotels, another covers food. After the trip there are always 3 days of WhatsApp calculation trying to figure out who owes who. She wants something she can open on her phone and settle in 5 minutes.
+Goal:  
+Track trip expenses in real time, see who paid what, settle quickly after the trip.
+3.  Core Features
+User Authentication
+Sign up with full name, email, and password
+Log in with email and password
+Session persists — user stays logged in across page refreshes
+Logout clears the session
+All dashboard routes redirect to /login if not authenticated
+Passwords are hashed and stored securely by Supabase — never in plain text
+Personal Expenses
+Add an expense with: description, amount (₹), and category
+Categories: Food, Transport, Entertainment, Shopping, Utilities, Health, Other
+View all expenses in a list ordered by newest first
+Delete any expense
+Stats cards: Total Spent, This Month, Number of Expenses, Average Expense
+All expenses are private — only the logged-in user can see their own
+Shared Groups
+Create a named group (e.g. 'Goa Trip 2025', 'Flat Mates')
+Creator is automatically added as the first member
+View groups you created and groups you joined separately
+See member count on each group card
+Delete groups you created (cascades — removes all members and expenses)
+Groups are only visible to members — enforced at the database level
+Dashboard
+Persistent sidebar with navigation links — does not reload on page change
+Active navigation link is visually highlighted
+User email displayed at the bottom of the sidebar
+Logout button in the sidebar
+Mobile responsive — sidebar hides on small screens
+4.  User Flows
+Signup Flow
+User opens /signup
+Fills in: Full Name, Email, Password, Confirm Password
+Client validates: name not empty, email format, password ≥ 8 chars, passwords match
+Clicks Sign Up → Supabase creates auth user → app inserts into public.users table
+Success message appears → redirect to /dashboard after 1.5 seconds
+If email already exists → error message shown: 'An account with this email already exists'
+Login Flow
+User opens /login
+Fills in email and password
+Clicks Sign In → Supabase checks credentials
+Success → JWT token stored in cookie → redirect to /dashboard
+Failure → error message: 'Invalid email or password'
+Add Expense Flow
+User is on /dashboard/expenses
+Fills in description, amount, and selects category from dropdown
+Clicks Add Expense → button shows 'Adding...' and is disabled
+Supabase inserts row in personal_expenses with user_id = logged-in user
+New expense appears at the top of the list immediately
+Success message shows for 2 seconds → form clears
+Create Group Flow
+User is on /dashboard/groups
+Types a group name (minimum 3 characters)
+Clicks Create Group → Supabase inserts into shared_groups
+App then inserts into group_members with the creator's user_id
+New group appears under 'Groups I Created' with member count: 1
+5.  Pages and Components
+  /login  
+  —  Login Page
+  ·  App title: '💰 Bill Splitter'
+  ·  Email input with label
+  ·  Password input with show/hide toggle
+  ·  Sign In button (loading state on submit)
+  ·  Error message display
+  ·  Link to /signup
+  /signup  
+  —  Signup Page
+  ·  App title
+  ·  Full Name input
+  ·  Email input
+  ·  Password input with strength indicator (weak/medium/strong)
+  ·  Confirm Password input
+  ·  Client-side validation for all fields
+  ·  Sign Up button (loading state)
+  ·  Error and success message display
+  ·  Link to /login
+  /dashboard  
+  —  Dashboard Overview
+  ·  Sidebar: app title, 3 nav links, user email, logout button
+  ·  Active link highlighting via usePathname()
+  ·  Main area: welcome message with user's name
+  ·  Placeholder for future overview stats
+  /dashboard/expenses  
+  —  My Expenses
+  ·  4 stats cards: Total, This Month, Count, Average
+  ·  Add expense form: description + amount + category dropdown
+  ·  Expenses list with emoji, category badge, description, amount, date, delete button
+  ·  Empty state message
+  ·  Loading state
+  /dashboard/groups  
+  —  My Groups
+  ·  3 stats cards: Total, Created, Joined
+  ·  Create group form with name input
+  ·  'Groups I Created' section with delete button
+  ·  'Groups I Joined' section (no delete)
+  ·  Group cards showing name, member count, creation date
+  ·  Empty states for both sections
+6.  Database Schema
+  public.users  
+  —  Stores user profiles linked to Supabase auth
+ Column 
+ Type / Constraint 
+ Description 
+ id 
+ UUID, Primary Key 
+ References auth.users(id) — same ID as the Supabase auth user 
+ email 
+ TEXT, Unique, Not Null 
+ User's email address 
+ name 
+ TEXT 
+ Display name entered during signup 
+ created_at 
+ TIMESTAMPTZ 
+ Auto-set to current time on insert 
+  public.personal_expenses  
+  —  Personal expenses belonging to one user
+ Column 
+ Type / Constraint 
+ Description 
+ id 
+ UUID, Primary Key 
+ Auto-generated UUID 
+ user_id 
+ UUID, Not Null 
+ References public.users(id) — owner of this expense 
+ amount 
+ DECIMAL(10,2) 
+ Must be greater than 0 
+ description 
+ TEXT, Not Null 
+ What the expense was for 
+ category 
+ TEXT 
+ One of: Food, Transport, Entertainment, Shopping, Utilities, Health, Other 
+ created_at 
+ TIMESTAMPTZ 
+ Auto-set to current time 
+  public.shared_groups  
+  —  Expense groups created by users
+ Column 
+ Type / Constraint 
+ Description 
+ id 
+ UUID, Primary Key 
+ Auto-generated UUID 
+ group_name 
+ TEXT, Not Null 
+ Name of the group e.g. 'Goa Trip' 
+ created_by 
+ UUID, Not Null 
+ References public.users(id) — the creator 
+ created_at 
+ TIMESTAMPTZ 
+ Auto-set to current time 
+  public.group_members  
+  —  Bridge table: connects users and groups (many-to-many)
+ Column 
+ Type / Constraint 
+ Description 
+ id 
+ UUID, Primary Key 
+ Auto-generated UUID 
+ group_id 
+ UUID, Not Null 
+ References public.shared_groups(id) 
+ user_id 
+ UUID, Not Null 
+ References public.users(id) 
+ joined_at 
+ TIMESTAMPTZ 
+ When the user joined the group 
+ UNIQUE 
+ (group_id, user_id) 
+ Prevents a user from being added to the same group twice 
+  public.group_expenses  
+  —  Expenses paid by one member on behalf of a group
+ Column 
+ Type / Constraint 
+ Description 
+ id 
+ UUID, Primary Key 
+ Auto-generated UUID 
+ group_id 
+ UUID, Not Null 
+ References public.shared_groups(id) 
+ paid_by 
+ UUID, Not Null 
+ References public.users(id) — who paid 
+ amount 
+ DECIMAL(10,2) 
+ Must be greater than 0 
+ description 
+ TEXT, Not Null 
+ What was paid for 
+ created_at 
+ TIMESTAMPTZ 
+ Auto-set to current time 
+7.  Authentication & Security
+Authentication is handled entirely by Supabase Auth. The app uses email/password authentication. Supabase hashes passwords using bcrypt — the app never stores or sees plain text passwords.
+Row Level Security (RLS)
+Every table has RLS enabled and explicit policies. This means even if someone calls the Supabase API directly with the public anon key, they can only read and write rows that belong to them. The security is enforced at the database layer — not in the frontend code.
+  users  
+— Users can only SELECT, UPDATE their own row (WHERE id = auth.uid())
+  personal_expenses  
+— Users can SELECT, INSERT, UPDATE, DELETE only rows WHERE user_id = auth.uid()
+  shared_groups  
+— Users can SELECT groups where they are a member or the creator. INSERT requires created_by = auth.uid(). DELETE requires created_by = auth.uid()
+  group_members  
+— Users can SELECT members of groups they belong to. INSERT requires user_id = auth.uid() (join yourself). DELETE requires user_id = auth.uid() (leave yourself)
+  group_expenses  
+— Users can SELECT expenses for groups they're in. INSERT requires paid_by = auth.uid() and group membership
+8.  Non-Functional Requirements
+Mobile Responsive — The dashboard layout collapses the sidebar on screens below 768px. A compact top bar replaces the sidebar on mobile. All forms and cards are full-width on small screens.
+Performance — All data fetching uses Supabase's JavaScript client with targeted queries (no SELECT *). Expenses are ordered and limited. The dashboard layout caches across navigations — only the page content re-renders.
+Error Handling — Every Supabase call is wrapped in try/catch. Error messages are shown to the user in plain English — not raw database errors. Forms show inline validation errors before submission.
+Loading States — Every async action (form submit, data load, delete) has a visible loading state. Buttons are disabled during loading to prevent duplicate submissions.
+Environment Security — API credentials are stored in .env.local locally and Vercel environment variables in production. .env.local is in .gitignore and is never committed to GitHub.
+Deployment — Hosted on Vercel. Automatic deployment on every push to main branch. Preview deployments for every other branch.
+ 
