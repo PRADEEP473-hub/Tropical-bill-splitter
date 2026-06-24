@@ -1,0 +1,1 @@
+Tropical Bill Splitter is a modern expense management app that helps users track personal expenses, manage shared groups, and split bills seamlessly during trips and outings. Built with Next.js, TypeScript, Supabase, and Vercel.
